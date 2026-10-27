@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Laboratorio local de administración de pólizas para prácticas con Katalon Studio">
+  <title>Póliza Lab | Administración de seguros</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23d9ef83'/%3E%3Cpath d='M22 48V16h12c9 0 14 5 14 13S43 42 34 42h-5v6h-7Zm7-13h5c5 0 7-2 7-6s-2-6-7-6h-5v12Z' fill='%23123c31'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#resumen" aria-label="Ir al resumen">
+        <span class="brand-mark">P</span>
+        <span><strong>Póliza</strong> Lab</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Navegación principal">
+        <button class="nav-item is-active" type="button" data-view="resumen">
+          <span class="nav-icon">⌂</span><span>Resumen</span>
+        </button>
+        <button class="nav-item" type="button" data-view="polizas">
+          <span class="nav-icon">◇</span><span>Pólizas</span>
+          <span class="nav-count" data-policy-count>0</span>
+        </button>
+        <button class="nav-item" type="button" data-view="facturas">
+          <span class="nav-icon">▤</span><span>Facturas</span>
+        </button>
+        <button class="nav-item" type="button" data-view="laboratorio">
+          <span class="nav-icon">⌁</span><span>Laboratorio QA</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-note">
+        <span class="pulse"></span>
+        <div><strong>Entorno local</strong><small>Listo para Katalon</small></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PORTAL DE OPERACIONES</p>
+          <h1 data-page-title>Resumen general</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" type="button" title="Notificaciones"><span>◌</span><i></i></button>
+          <div class="profile"><span class="avatar">IR</span><div><strong>Ian Romero</strong><small>Administrador</small></div></div>
+        </div>
+      </header>
+
+      <div id="global-alert" class="alert" role="status" aria-live="polite" hidden></div>
+
+      <section class="view is-visible" data-section="resumen">
+        <div class="hero-card">
+          <div>
+            <span class="hero-kicker">CONTROL DE CARTERA</span>
+            <h2>Tu operación de seguros,<br><em>en orden.</em></h2>
+            <p>Administra altas, cambios, bajas y facturación desde un solo espacio.</p>
+          </div>
+          <button class="primary-button" type="button" data-open-policy>
+            <span>＋</span> Nueva póliza
+          </button>
+          <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+        </div>
+
+        <div class="metrics" data-metrics></div>
+
+        <div class="content-grid">
+          <article class="panel recent-panel">
+            <div class="panel-heading"><div><span class="section-label">ACTIVIDAD</span><h3>Pólizas recientes</h3></div><button class="text-button" type="button" data-view-link="polizas">Ver todas →</button></div>
+            <div class="compact-list" data-recent-policies></div>
+          </article>
+          <article class="panel chart-panel">
+            <div class="panel-heading"><div><span class="section-label">DISTRIBUCIÓN</span><h3>Cartera por ramo</h3></div></div>
+            <div class="donut-wrap"><div class="donut" data-donut><div><strong data-total-premium>$0</strong><span>prima total</span></div></div><div class="legend" data-legend></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" data-section="polizas">
+        <div class="section-toolbar">
+          <div><p class="section-intro">Gestiona el ciclo completo de las pólizas registradas.</p></div>
+          <button class="primary-button" type="button" data-open-policy><span>＋</span> Nueva póliza</button>
+        </div>
+        <article class="panel table-panel">
+          <div class="filters">
+            <div class="search-box"><span>⌕</span><input type="search" placeholder="Buscar por folio, titular o correo" data-policy-search></div>
+            <select data-policy-status aria-label="Filtrar por estado"><option value="">Todos los estados</option><option>Vigente</option><option>Pendiente</option><option>Baja</option></select>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" data-policy-table>
+              <thead><tr><th>Folio</th><th>Titular</th><th>Ramo</th><th>Vigencia</th><th>Prima anual</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="empty-state" data-policy-empty hidden><span>◇</span><h3>No encontramos pólizas</h3><p>Prueba con otros criterios de búsqueda.</p></div>
+        </article>
+      </section>
+
+      <section class="view" data-section="facturas">
+        <div class="section-toolbar"><div><p class="section-intro">Consulta las facturas generadas al dar de alta una póliza.</p></div><button class="secondary-button" type="button" data-download-csv>↓ Exportar CSV</button></div>
+        <article class="panel table-panel">
+          <div class="filters">
+            <div class="search-box"><span>⌕</span><input type="search" placeholder="Buscar factura, póliza o cliente" data-invoice-search></div>
+            <select data-invoice-status aria-label="Filtrar facturas por estado"><option value="">Todos los estados</option><option>Pagada</option><option>Pendiente</option><option>Cancelada</option></select>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table invoice-table" data-invoice-table>
+              <thead><tr><th>Factura</th><th>Póliza</th><th>Cliente</th><th>Emisión</th><th>Vencimiento</th><th>Importe</th><th>Estado</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="empty-state" data-invoice-empty hidden><span>▤</span><h3>Sin facturas para mostrar</h3><p>Cambia los filtros o registra una póliza.</p></div>
+        </article>
+      </section>
+
+      <section class="view" data-section="laboratorio">
+        <div class="lab-hero">
+          <span class="lab-number">QA</span>
+          <div><span class="hero-kicker">KATALON STUDIO</span><h2>Laboratorio de localizadores</h2><p>Ejercicios intencionales para practicar desde selectores simples hasta XPath resistentes a cambios.</p></div>
+        </div>
+        <div class="challenge-grid">
+          <article class="challenge-card"><span>01</span><h3>IDs dinámicos</h3><p>Los campos del formulario reciben un ID distinto cada vez que se abre. Localízalos por relación, texto o atributos semánticos.</p><code>//label[contains(.,'Titular')]/following::input[1]</code></article>
+          <article class="challenge-card"><span>02</span><h3>Controles sin ID</h3><p>Los menús de acciones y varios botones no tienen ID ni name. Construye selectores relativos a la fila.</p><code>//tr[.//td[contains(.,'POL-')]]//button</code></article>
+          <article class="challenge-card"><span>03</span><h3>DOM regenerado</h3><p>Filtrar, editar o cambiar de sección vuelve a dibujar las filas. Usa esperas explícitas antes de validar.</p><code>waitForElementVisible(...)</code></article>
+          <article class="challenge-card"><span>04</span><h3>Datos variables</h3><p>Los folios se generan en el servidor. Valida patrones y relaciones, no valores fijos.</p><code>matches('POL-\\d{4}-\\d{3}')</code></article>
+        </div>
+        <article class="panel lab-checklist"><div class="panel-heading"><div><span class="section-label">RUTA SUGERIDA</span><h3>Prácticas de automatización</h3></div></div><ol><li><strong>Alta positiva:</strong> registrar una póliza y validar la fila y factura creadas.</li><li><strong>Alta negativa:</strong> provocar validaciones de correo, prima y fechas.</li><li><strong>Modificación:</strong> cambiar titular y prima; comprobar propagación a facturas.</li><li><strong>Baja lógica:</strong> dar de baja una póliza y verificar la factura cancelada.</li><li><strong>Reactivación:</strong> restaurar una póliza desde el mismo menú contextual.</li><li><strong>Eliminación:</strong> confirmar la eliminación definitiva y sus datos relacionados.</li><li><strong>Data-driven:</strong> repetir altas con un CSV y validar cada nueva fila.</li></ol></article>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" data-policy-modal hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <header class="modal-header"><div><span class="section-label">EXPEDIENTE DIGITAL</span><h2 id="modal-title">Nueva póliza</h2></div><button type="button" class="modal-close" title="Cerrar">×</button></header>
+      <form data-policy-form novalidate>
+        <input type="hidden" data-record-id>
+        <div class="form-grid">
+          <div class="field span-2"><label>Titular o razón social <b>*</b></label><input type="text" data-field="holder" autocomplete="off"><small class="field-error"></small></div>
+          <div class="field span-2"><label>Correo electrónico <b>*</b></label><input type="email" data-field="email" autocomplete="off"><small class="field-error"></small></div>
+          <div class="field"><label>Ramo <b>*</b></label><select data-field="type"><option value="">Selecciona</option><option>Auto</option><option>Vida</option><option>Hogar</option><option>Gastos médicos</option><option>Daños</option></select><small class="field-error"></small></div>
+          <div class="field"><label>Plan / cobertura <b>*</b></label><input type="text" data-field="coverage" autocomplete="off"><small class="field-error"></small></div>
+          <div class="field"><label>Prima anual <b>*</b></label><div class="money-input"><span>$</span><input type="number" min="1" step="0.01" data-field="premium"></div><small class="field-error"></small></div>
+          <div class="field"><label>Estado inicial</label><select data-field="status"><option>Vigente</option><option>Pendiente</option></select><small class="field-error"></small></div>
+          <div class="field"><label>Inicio de vigencia <b>*</b></label><input type="date" data-field="startDate"><small class="field-error"></small></div>
+          <div class="field"><label>Fin de vigencia <b>*</b></label><input type="date" data-field="endDate"><small class="field-error"></small></div>
+        </div>
+        <footer class="modal-footer"><button type="button" class="secondary-button" data-cancel-form>Cancelar</button><button type="submit" class="primary-button"><span data-submit-icon>＋</span><span data-submit-label>Crear póliza</span></button></footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop confirm-layer" data-confirm-modal hidden>
+    <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+      <span class="danger-icon">!</span><h2 id="confirm-title">Eliminar póliza</h2><p data-confirm-message></p><div><button class="secondary-button" type="button" data-confirm-cancel>Conservar</button><button class="danger-button" type="button" data-confirm-delete>Eliminar definitivamente</button></div>
+    </section>
+  </div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{
+  "policies": [
+    {
+      "id": "POL-2026-001",
+      "holder": "Mariana Torres",
+      "email": "mariana.torres@correo.mx",
+      "type": "Auto",
+      "coverage": "Amplia",
+      "premium": 12480,
+      "startDate": "2026-01-15",
+      "endDate": "2027-01-14",
+      "status": "Vigente",
+      "createdAt": "2026-01-10T16:20:00.000Z"
+    },
+    {
+      "id": "POL-2026-002",
+      "holder": "Roberto Sánchez",
+      "email": "roberto.sanchez@correo.mx",
+      "type": "Vida",
+      "coverage": "Premium",
+      "premium": 18900,
+      "startDate": "2026-02-01",
+      "endDate": "2027-01-31",
+      "status": "Vigente",
+      "createdAt": "2026-01-28T11:05:00.000Z"
+    },
+    {
+      "id": "POL-2026-003",
+      "holder": "Comercializadora Nova SA",
+      "email": "finanzas@nova.mx",
+      "type": "Daños",
+      "coverage": "Empresarial",
+      "premium": 36750,
+      "startDate": "2026-03-10",
+      "endDate": "2027-03-09",
+      "status": "Pendiente",
+      "createdAt": "2026-03-05T19:30:00.000Z"
+    },
+    {
+      "id": "POL-2025-087",
+      "holder": "Jorge Medina",
+      "email": "jorge.medina@correo.mx",
+      "type": "Hogar",
+      "coverage": "Esencial",
+      "premium": 7380,
+      "startDate": "2025-09-20",
+      "endDate": "2026-09-19",
+      "status": "Baja",
+      "createdAt": "2025-09-17T13:45:00.000Z"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "FAC-2601-1048",
+      "policyId": "POL-2026-001",
+      "holder": "Mariana Torres",
+      "amount": 12480,
+      "issuedAt": "2026-01-15",
+      "dueAt": "2026-01-31",
+      "status": "Pagada"
+    },
+    {
+      "id": "FAC-2602-1102",
+      "policyId": "POL-2026-002",
+      "holder": "Roberto Sánchez",
+      "amount": 18900,
+      "issuedAt": "2026-02-01",
+      "dueAt": "2026-02-15",
+      "status": "Pagada"
+    },
+    {
+      "id": "FAC-2603-1197",
+      "policyId": "POL-2026-003",
+      "holder": "Comercializadora Nova SA",
+      "amount": 36750,
+      "issuedAt": "2026-03-10",
+      "dueAt": "2026-03-25",
+      "status": "Pendiente"
+    },
+    {
+      "id": "FAC-2510-0821",
+      "policyId": "POL-2025-087",
+      "holder": "Jorge Medina",
+      "amount": 7380,
+      "issuedAt": "2025-09-20",
+      "dueAt": "2025-10-05",
+      "status": "Cancelada"
+    }
+  ]
+}
