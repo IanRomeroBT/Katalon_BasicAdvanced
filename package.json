@@ -1,6 +1,6 @@
 {
   "name": "poliza-lab-katalon",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Sistema local de pólizas para capacitación avanzada de Katalon Studio",
   "scripts": {

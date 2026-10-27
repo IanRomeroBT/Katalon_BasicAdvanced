@@ -59,6 +59,18 @@ function validatePolicy(policy) {
   return null;
 }
 
+function validateClaim(claim, db) {
+  const required = ['policyId', 'incidentDate', 'type', 'estimatedAmount', 'description'];
+  const missing = required.filter(key => claim[key] === undefined || String(claim[key]).trim() === '');
+  if (missing.length) return `Campos requeridos: ${missing.join(', ')}`;
+  const policy = db.policies.find(item => item.id === claim.policyId);
+  if (!policy) return 'La póliza seleccionada no existe';
+  if (policy.status !== 'Vigente') return 'Solo se admiten siniestros para pólizas vigentes';
+  if (Number(claim.estimatedAmount) <= 0) return 'El monto estimado debe ser mayor a cero';
+  if (claim.incidentDate < policy.startDate || claim.incidentDate > policy.endDate) return 'El incidente debe ocurrir dentro de la vigencia de la póliza';
+  return null;
+}
+
 function nextPolicyId(policies) {
   const year = new Date().getFullYear();
   const max = policies
@@ -73,6 +85,15 @@ function nextInvoiceId(invoices) {
   const prefix = `${String(date.getFullYear()).slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}`;
   const sequence = 1000 + invoices.length + Math.floor(Math.random() * 8000);
   return `FAC-${prefix}-${sequence}`;
+}
+
+function nextClaimId(claims) {
+  const year = new Date().getFullYear();
+  const max = claims
+    .map(item => /^SIN-\d{4}-(\d+)$/.exec(item.id))
+    .filter(Boolean)
+    .reduce((value, match) => Math.max(value, Number(match[1])), 0);
+  return `SIN-${year}-${String(max + 1).padStart(3, '0')}`;
 }
 
 async function handleApi(req, res, url) {
@@ -113,6 +134,61 @@ async function handleApi(req, res, url) {
     return json(res, 201, { policy, invoice });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/claims') {
+    const input = await readBody(req);
+    const error = validateClaim(input, db);
+    if (error) return json(res, 400, { error });
+    const policy = db.policies.find(item => item.id === input.policyId);
+    const claim = {
+      id: nextClaimId(db.claims || []),
+      policyId: policy.id,
+      holder: policy.holder,
+      incidentDate: input.incidentDate,
+      type: input.type,
+      estimatedAmount: Number(input.estimatedAmount),
+      description: input.description.trim(),
+      status: 'Reportado',
+      createdAt: new Date().toISOString()
+    };
+    db.claims = db.claims || [];
+    db.claims.unshift(claim);
+    writeDb(db);
+    return json(res, 201, claim);
+  }
+
+  const invoiceMatch = /^\/api\/invoices\/([^/]+)$/.exec(url.pathname);
+  if (invoiceMatch && req.method === 'PATCH') {
+    const id = decodeURIComponent(invoiceMatch[1]);
+    const invoice = db.invoices.find(item => item.id === id);
+    if (!invoice) return json(res, 404, { error: 'Factura no encontrada' });
+    if (invoice.status === 'Cancelada') return json(res, 400, { error: 'Una factura cancelada no puede marcarse como pagada' });
+    const input = await readBody(req);
+    invoice.status = input.status === 'Pagada' ? 'Pagada' : invoice.status;
+    invoice.paidAt = invoice.status === 'Pagada' ? new Date().toISOString() : null;
+    writeDb(db);
+    return json(res, 200, invoice);
+  }
+
+  const claimMatch = /^\/api\/claims\/([^/]+)$/.exec(url.pathname);
+  if (claimMatch && ['PATCH', 'DELETE'].includes(req.method)) {
+    const id = decodeURIComponent(claimMatch[1]);
+    const index = (db.claims || []).findIndex(item => item.id === id);
+    if (index < 0) return json(res, 404, { error: 'Siniestro no encontrado' });
+    if (req.method === 'DELETE') {
+      if (!['Reportado', 'Rechazado'].includes(db.claims[index].status)) return json(res, 400, { error: 'Solo se pueden eliminar siniestros reportados o rechazados' });
+      db.claims.splice(index, 1);
+      writeDb(db);
+      return json(res, 200, { deleted: id });
+    }
+    const input = await readBody(req);
+    const allowed = ['Reportado', 'En revisión', 'Aprobado', 'Rechazado', 'Pagado'];
+    if (!allowed.includes(input.status)) return json(res, 400, { error: 'Estado de siniestro inválido' });
+    db.claims[index].status = input.status;
+    db.claims[index].updatedAt = new Date().toISOString();
+    writeDb(db);
+    return json(res, 200, db.claims[index]);
+  }
+
   const policyMatch = /^\/api\/policies\/([^/]+)$/.exec(url.pathname);
   if (policyMatch && ['PUT', 'PATCH', 'DELETE'].includes(req.method)) {
     const id = decodeURIComponent(policyMatch[1]);
@@ -120,6 +196,8 @@ async function handleApi(req, res, url) {
     if (index < 0) return json(res, 404, { error: 'Póliza no encontrada' });
 
     if (req.method === 'DELETE') {
+      const relatedClaims = (db.claims || []).filter(item => item.policyId === id);
+      if (relatedClaims.length) return json(res, 409, { error: 'No se puede eliminar una póliza con siniestros relacionados' });
       db.policies.splice(index, 1);
       db.invoices = db.invoices.filter(item => item.policyId !== id);
       writeDb(db);
@@ -186,8 +264,8 @@ const server = http.createServer(async (req, res) => {
 
 if (require.main === module) {
   server.listen(PORT, '127.0.0.1', () => {
-    console.log(`Póliza Lab disponible en http://localhost:${PORT}`);
+    console.log(`Póliza Lab 2.0 disponible en http://localhost:${PORT}`);
   });
 }
 
-module.exports = { server, validatePolicy };
+module.exports = { server, validatePolicy, validateClaim };

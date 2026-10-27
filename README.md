@@ -35,6 +35,13 @@ Los datos se guardan en `data/db.json`. El repositorio incluye registros inicial
 - Laboratorio integrado de selectores XPath.
 - Diseño adaptable a escritorio, tableta y móvil.
 
+### Release 2.0
+
+- Gestión y seguimiento de siniestros.
+- Reglas de integridad entre pólizas, facturas y siniestros.
+- Registro de pagos de facturas pendientes.
+- Nuevas historias de usuario y escenarios de regresión avanzada.
+
 ## Diseño para Katalon
 
 La dificultad de automatización es intencional:
@@ -48,4 +55,6 @@ La dificultad de automatización es intencional:
 Para selectores mantenibles, usa texto visible, relaciones entre elementos y atributos de negocio como `data-policy-key`. Evita guardar los IDs dinámicos capturados por Web Spy sin revisarlos.
 
 Consulta [las historias de usuario](docs/HISTORIAS_USUARIO.md) para criterios de aceptación y la matriz sugerida de ejercicios.
+
+Las novedades y prácticas específicas de la versión 2.0 están documentadas en [RELEASE_2.0.md](docs/RELEASE_2.0.md).
 

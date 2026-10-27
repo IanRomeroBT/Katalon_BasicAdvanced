@@ -124,3 +124,58 @@ El sistema administra pólizas y las facturas generadas al momento de su alta. L
 | Avanzado | Baja y reactivación | Esperas explícitas y DOM dinámico |
 | Avanzado | Reparar un locator basado en ID dinámico | Diagnóstico y self-healing |
 
+## Release 2.0
+
+### HU-09 - Reportar un siniestro
+
+**Como** ejecutivo de atención
+**Quiero** registrar un incidente asociado a una póliza
+**Para** iniciar su seguimiento y resolución.
+
+**Criterios de aceptación**
+
+- Solo se muestran pólizas vigentes en el formulario.
+- Fecha, tipo, monto y descripción son obligatorios.
+- La fecha del incidente debe estar dentro de la vigencia de la póliza.
+- El monto estimado debe ser mayor que cero.
+- El sistema genera un folio `SIN-AAAA-NNN` con estado Reportado.
+
+### HU-10 - Gestionar el ciclo de un siniestro
+
+**Como** ajustador
+**Quiero** consultar, filtrar y cambiar el estado de los siniestros
+**Para** reflejar el avance de cada expediente.
+
+**Criterios de aceptación**
+
+- El grid muestra folio, póliza, titular, incidente, tipo, monto y estado.
+- La búsqueda acepta folio de siniestro, póliza, titular o tipo.
+- Los estados disponibles son Reportado, En revisión, Aprobado, Rechazado y Pagado.
+- Los cambios actualizan los indicadores sin recargar manualmente.
+- Solo se pueden eliminar reportes en estado Reportado o Rechazado.
+
+### HU-11 - Proteger pólizas con siniestros
+
+**Como** responsable de cumplimiento
+**Quiero** impedir la eliminación de pólizas con siniestros relacionados
+**Para** conservar la integridad y trazabilidad de los expedientes.
+
+**Criterios de aceptación**
+
+- Una póliza con cualquier siniestro relacionado no puede eliminarse.
+- El sistema informa claramente la causa del rechazo.
+- La baja lógica continúa disponible porque no borra el expediente.
+
+### HU-12 - Registrar el pago de una factura
+
+**Como** analista de cobranza
+**Quiero** marcar una factura pendiente como pagada
+**Para** mantener actualizado el estado de cobro.
+
+**Criterios de aceptación**
+
+- Las facturas pendientes muestran la acción Registrar pago.
+- Al confirmar la acción, el estado cambia a Pagada y se registra la fecha interna.
+- Las facturas pagadas dejan de mostrar la acción.
+- Una factura cancelada no puede marcarse como pagada.
+

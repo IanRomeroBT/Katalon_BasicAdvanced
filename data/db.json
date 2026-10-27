@@ -86,5 +86,29 @@
       "dueAt": "2025-10-05",
       "status": "Cancelada"
     }
+  ],
+  "claims": [
+    {
+      "id": "SIN-2026-001",
+      "policyId": "POL-2026-001",
+      "holder": "Mariana Torres",
+      "incidentDate": "2026-08-14",
+      "type": "Colisión",
+      "estimatedAmount": 28500,
+      "description": "Daño frontal por alcance en avenida principal.",
+      "status": "En revisión",
+      "createdAt": "2026-08-15T16:30:00.000Z"
+    },
+    {
+      "id": "SIN-2026-002",
+      "policyId": "POL-2026-002",
+      "holder": "Roberto Sánchez",
+      "incidentDate": "2026-09-03",
+      "type": "Incapacidad",
+      "estimatedAmount": 42000,
+      "description": "Solicitud de cobertura por incapacidad temporal.",
+      "status": "Reportado",
+      "createdAt": "2026-09-04T12:10:00.000Z"
+    }
   ]
 }

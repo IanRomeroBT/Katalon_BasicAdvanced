@@ -30,6 +30,10 @@
         <button class="nav-item" type="button" data-view="facturas">
           <span class="nav-icon">▤</span><span>Facturas</span>
         </button>
+        <button class="nav-item" type="button" data-view="siniestros">
+          <span class="nav-icon">△</span><span>Siniestros</span>
+          <span class="nav-count" data-claim-count>0</span>
+        </button>
         <button class="nav-item" type="button" data-view="laboratorio">
           <span class="nav-icon">⌁</span><span>Laboratorio QA</span>
         </button>
@@ -44,7 +48,7 @@
     <main class="main-content">
       <header class="topbar">
         <div>
-          <p class="eyebrow">PORTAL DE OPERACIONES</p>
+          <p class="eyebrow">PORTAL DE OPERACIONES <span class="release-badge">RELEASE 2.0</span></p>
           <h1 data-page-title>Resumen general</h1>
         </div>
         <div class="topbar-actions">
@@ -111,11 +115,31 @@
           </div>
           <div class="table-scroll">
             <table class="data-table invoice-table" data-invoice-table>
-              <thead><tr><th>Factura</th><th>Póliza</th><th>Cliente</th><th>Emisión</th><th>Vencimiento</th><th>Importe</th><th>Estado</th></tr></thead>
+              <thead><tr><th>Factura</th><th>Póliza</th><th>Cliente</th><th>Emisión</th><th>Vencimiento</th><th>Importe</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
           <div class="empty-state" data-invoice-empty hidden><span>▤</span><h3>Sin facturas para mostrar</h3><p>Cambia los filtros o registra una póliza.</p></div>
+        </article>
+      </section>
+
+      <section class="view" data-section="siniestros">
+        <div class="section-toolbar">
+          <div><p class="section-intro">Registra incidentes y da seguimiento a su resolución.</p></div>
+          <button class="primary-button" type="button" data-open-claim><span>＋</span> Reportar siniestro</button>
+        </div>
+        <article class="panel table-panel">
+          <div class="filters">
+            <div class="search-box"><span>⌕</span><input type="search" placeholder="Buscar siniestro, póliza o titular" data-claim-search></div>
+            <select data-claim-status aria-label="Filtrar siniestros por estado"><option value="">Todos los estados</option><option>Reportado</option><option>En revisión</option><option>Aprobado</option><option>Rechazado</option><option>Pagado</option></select>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" data-claim-table>
+              <thead><tr><th>Siniestro</th><th>Póliza / titular</th><th>Incidente</th><th>Tipo</th><th>Monto estimado</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="empty-state" data-claim-empty hidden><span>△</span><h3>No hay siniestros</h3><p>Cambia los filtros o reporta un incidente.</p></div>
         </article>
       </section>
 
@@ -151,6 +175,22 @@
           <div class="field"><label>Fin de vigencia <b>*</b></label><input type="date" data-field="endDate"><small class="field-error"></small></div>
         </div>
         <footer class="modal-footer"><button type="button" class="secondary-button" data-cancel-form>Cancelar</button><button type="submit" class="primary-button"><span data-submit-icon>＋</span><span data-submit-label>Crear póliza</span></button></footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" data-claim-modal hidden>
+    <section class="modal claim-modal" role="dialog" aria-modal="true" aria-labelledby="claim-modal-title">
+      <header class="modal-header"><div><span class="section-label">RELEASE 2.0</span><h2 id="claim-modal-title">Reportar siniestro</h2></div><button type="button" class="modal-close" data-close-claim title="Cerrar">×</button></header>
+      <form data-claim-form novalidate>
+        <div class="form-grid">
+          <div class="field span-2"><label>Póliza vigente <b>*</b></label><select data-claim-field="policyId"><option value="">Selecciona una póliza</option></select><small class="field-error"></small></div>
+          <div class="field"><label>Fecha del incidente <b>*</b></label><input type="date" data-claim-field="incidentDate"><small class="field-error"></small></div>
+          <div class="field"><label>Tipo de siniestro <b>*</b></label><select data-claim-field="type"><option value="">Selecciona</option><option>Colisión</option><option>Robo</option><option>Daño material</option><option>Incapacidad</option><option>Fallecimiento</option><option>Otro</option></select><small class="field-error"></small></div>
+          <div class="field span-2"><label>Monto estimado <b>*</b></label><div class="money-input"><span>$</span><input type="number" min="1" step="0.01" data-claim-field="estimatedAmount"></div><small class="field-error"></small></div>
+          <div class="field span-2"><label>Descripción del incidente <b>*</b></label><textarea rows="4" data-claim-field="description" placeholder="Describe brevemente qué ocurrió"></textarea><small class="field-error"></small></div>
+        </div>
+        <footer class="modal-footer"><button type="button" class="secondary-button" data-close-claim>Cancelar</button><button type="submit" class="primary-button"><span>＋</span> Crear reporte</button></footer>
       </form>
     </section>
   </div>

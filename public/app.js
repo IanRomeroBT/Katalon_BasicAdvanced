@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { policies: [], invoices: [], activeView: 'resumen', editId: null, deleteId: null };
+const state = { policies: [], invoices: [], claims: [], activeView: 'resumen', editId: null, deleteId: null, deleteKind: null };
 const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
 const shortDate = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
 const qs = (selector, scope = document) => scope.querySelector(selector);
@@ -24,6 +24,7 @@ async function loadData() {
   const data = await request('/api/dashboard');
   state.policies = data.policies;
   state.invoices = data.invoices;
+  state.claims = data.claims || [];
   renderAll();
 }
 
@@ -51,14 +52,17 @@ function formatDate(value) {
 function renderMetrics() {
   const active = state.policies.filter(policy => policy.status === 'Vigente').length;
   const pending = state.invoices.filter(invoice => invoice.status === 'Pendiente');
+  const openClaims = state.claims.filter(claim => !['Rechazado', 'Pagado'].includes(claim.status));
   const annual = state.policies.filter(policy => policy.status !== 'Baja').reduce((sum, policy) => sum + policy.premium, 0);
   qs('[data-metrics]').innerHTML = [
     ['◇', 'Pólizas totales', state.policies.length, `${active} vigentes`],
     ['✓', 'Pólizas vigentes', active, 'Cartera activa'],
     ['▤', 'Facturas pendientes', pending.length, money.format(pending.reduce((sum, item) => sum + item.amount, 0))],
+    ['△', 'Siniestros abiertos', openClaims.length, `${state.claims.length} reportados`],
     ['↗', 'Prima anual', money.format(annual), 'Sin pólizas dadas de baja']
   ].map(item => `<article class="metric-card"><i class="metric-icon">${item[0]}</i><span>${item[1]}</span><strong>${item[2]}</strong><small>${item[3]}</small></article>`).join('');
   qsa('[data-policy-count]').forEach(element => { element.textContent = state.policies.length; });
+  qsa('[data-claim-count]').forEach(element => { element.textContent = state.claims.length; });
 }
 
 function renderRecent() {
@@ -131,20 +135,43 @@ function renderInvoices() {
   qs('[data-invoice-table] tbody').innerHTML = rows.map(invoice => `<tr id="${dynamicId('invoice')}">
     <td><span class="folio">${invoice.id}</span></td><td>${invoice.policyId}</td><td><strong>${escapeHtml(invoice.holder)}</strong></td>
     <td>${formatDate(invoice.issuedAt)}</td><td>${formatDate(invoice.dueAt)}</td><td><strong>${money.format(invoice.amount)}</strong></td><td>${statusBadge(invoice.status)}</td>
+    <td>${invoice.status === 'Pendiente' ? `<button class="mini-action" type="button" data-pay-invoice="${invoice.id}">Registrar pago</button>` : ''}</td>
   </tr>`).join('');
   qs('[data-invoice-empty]').hidden = rows.length > 0;
   qs('[data-invoice-table]').hidden = rows.length === 0;
 }
 
+function claimRows() {
+  const text = qs('[data-claim-search]').value.trim().toLowerCase();
+  const status = qs('[data-claim-status]').value;
+  return state.claims.filter(claim => {
+    const haystack = `${claim.id} ${claim.policyId} ${claim.holder} ${claim.type}`.toLowerCase();
+    return (!text || haystack.includes(text)) && (!status || claim.status === status);
+  });
+}
+
+function renderClaims() {
+  const rows = claimRows();
+  qs('[data-claim-table] tbody').innerHTML = rows.map(claim => `<tr id="${dynamicId('claim')}" data-claim-key="${claim.id}">
+    <td><span class="folio">${claim.id}</span><small>Reporte ${formatDate(claim.createdAt.slice(0, 10))}</small></td>
+    <td><strong>${claim.policyId}</strong><small>${escapeHtml(claim.holder)}</small></td>
+    <td>${formatDate(claim.incidentDate)}</td><td>${escapeHtml(claim.type)}</td><td><strong>${money.format(claim.estimatedAmount)}</strong></td>
+    <td><select class="status-select" data-claim-status-change="${claim.id}" aria-label="Estado de ${claim.id}">${['Reportado', 'En revisión', 'Aprobado', 'Rechazado', 'Pagado'].map(status => `<option${status === claim.status ? ' selected' : ''}>${status}</option>`).join('')}</select></td>
+    <td><button class="kebab claim-delete" type="button" title="Eliminar ${claim.id}" data-delete-claim="${claim.id}">×</button></td>
+  </tr>`).join('');
+  qs('[data-claim-empty]').hidden = rows.length > 0;
+  qs('[data-claim-table]').hidden = rows.length === 0;
+}
+
 function renderAll() {
-  renderMetrics(); renderRecent(); renderChart(); renderPolicies(); renderInvoices();
+  renderMetrics(); renderRecent(); renderChart(); renderPolicies(); renderInvoices(); renderClaims();
 }
 
 function switchView(view) {
   state.activeView = view;
   qsa('[data-section]').forEach(section => section.classList.toggle('is-visible', section.dataset.section === view));
   qsa('[data-view]').forEach(button => button.classList.toggle('is-active', button.dataset.view === view));
-  const titles = { resumen: 'Resumen general', polizas: 'Administración de pólizas', facturas: 'Facturas creadas', laboratorio: 'Laboratorio QA' };
+  const titles = { resumen: 'Resumen general', polizas: 'Administración de pólizas', facturas: 'Facturas creadas', siniestros: 'Gestión de siniestros', laboratorio: 'Laboratorio QA' };
   qs('[data-page-title]').textContent = titles[view];
   location.hash = view;
   closeMenus();
@@ -180,6 +207,63 @@ function closePolicyModal() {
   qs('[data-policy-modal]').hidden = true;
   document.body.style.overflow = '';
   state.editId = null;
+}
+
+function openClaimModal() {
+  const modal = qs('[data-claim-modal]');
+  const form = qs('[data-claim-form]');
+  form.reset();
+  qsa('.field', form).forEach(field => { field.classList.remove('has-error'); qs('.field-error', field).textContent = ''; });
+  const policySelect = qs('[data-claim-field="policyId"]');
+  policySelect.innerHTML = '<option value="">Selecciona una póliza</option>' + state.policies
+    .filter(policy => policy.status === 'Vigente')
+    .map(policy => `<option value="${policy.id}">${policy.id} · ${escapeHtml(policy.holder)}</option>`).join('');
+  qsa('[data-claim-field]', form).forEach(control => {
+    const label = qs('label', control.closest('.field'));
+    const id = dynamicId('claim-field'); control.id = id; if (label) label.htmlFor = id;
+  });
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => policySelect.focus(), 30);
+}
+
+function closeClaimModal() {
+  qs('[data-claim-modal]').hidden = true;
+  document.body.style.overflow = '';
+}
+
+async function saveClaim(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(qsa('[data-claim-field]', form).map(control => [control.dataset.claimField, control.value.trim()]));
+  let valid = true;
+  qsa('[data-claim-field]', form).forEach(control => {
+    const field = control.closest('.field'); const error = qs('.field-error', field);
+    field.classList.remove('has-error'); error.textContent = '';
+    if (!control.value.trim()) { field.classList.add('has-error'); error.textContent = 'Este campo es obligatorio'; valid = false; }
+  });
+  if (data.estimatedAmount && Number(data.estimatedAmount) <= 0) {
+    const field = qs('[data-claim-field="estimatedAmount"]').closest('.field'); field.classList.add('has-error'); qs('.field-error', field).textContent = 'Debe ser mayor a cero'; valid = false;
+  }
+  if (!valid) return showAlert('Revisa los datos del siniestro.', true);
+  try {
+    const claim = await request('/api/claims', { method: 'POST', body: JSON.stringify(data) });
+    closeClaimModal(); await loadData(); switchView('siniestros'); showAlert(`Siniestro ${claim.id} reportado correctamente.`);
+  } catch (error) { showAlert(error.message, true); }
+}
+
+async function updateClaimStatus(id, status) {
+  try {
+    await request(`/api/claims/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+    await loadData(); showAlert(`Siniestro ${id} actualizado a ${status}.`);
+  } catch (error) { await loadData(); showAlert(error.message, true); }
+}
+
+async function payInvoice(id) {
+  try {
+    await request(`/api/invoices/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status: 'Pagada' }) });
+    await loadData(); showAlert(`Pago registrado en la factura ${id}.`);
+  } catch (error) { showAlert(error.message, true); }
 }
 
 function clearErrors() {
@@ -253,17 +337,29 @@ async function handleRowAction(event, policy) {
 
 function openConfirm(policy) {
   state.deleteId = policy.id;
+  state.deleteKind = 'policy';
+  qs('#confirm-title').textContent = 'Eliminar póliza';
   qs('[data-confirm-message]').textContent = `Se eliminarán ${policy.id} y sus facturas relacionadas. Esta acción no se puede deshacer.`;
   qs('[data-confirm-modal]').hidden = false;
 }
 
-function closeConfirm() { qs('[data-confirm-modal]').hidden = true; state.deleteId = null; }
+function openClaimConfirm(claim) {
+  state.deleteId = claim.id;
+  state.deleteKind = 'claim';
+  qs('#confirm-title').textContent = 'Eliminar siniestro';
+  qs('[data-confirm-message]').textContent = `Se eliminará el reporte ${claim.id}. Solo los reportes iniciales o rechazados pueden eliminarse.`;
+  qs('[data-confirm-modal]').hidden = false;
+}
 
-async function deletePolicy() {
+function closeConfirm() { qs('[data-confirm-modal]').hidden = true; state.deleteId = null; state.deleteKind = null; qs('#confirm-title').textContent = 'Eliminar póliza'; }
+
+async function deleteRecord() {
   const id = state.deleteId;
+  const kind = state.deleteKind;
   try {
-    await request(`/api/policies/${encodeURIComponent(id)}`, { method: 'DELETE' });
-    closeConfirm(); await loadData(); showAlert(`Póliza ${id} eliminada definitivamente.`);
+    const resource = kind === 'claim' ? 'claims' : 'policies';
+    await request(`/api/${resource}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    closeConfirm(); await loadData(); showAlert(kind === 'claim' ? `Siniestro ${id} eliminado.` : `Póliza ${id} eliminada definitivamente.`);
   } catch (error) { showAlert(error.message, true); }
 }
 
@@ -285,7 +381,12 @@ document.addEventListener('click', event => {
   const nav = event.target.closest('[data-view]'); if (nav) switchView(nav.dataset.view);
   const link = event.target.closest('[data-view-link]'); if (link) switchView(link.dataset.viewLink);
   if (event.target.closest('[data-open-policy]')) openPolicyModal();
+  if (event.target.closest('[data-open-claim]')) openClaimModal();
   if (event.target.closest('.modal-close,[data-cancel-form]')) closePolicyModal();
+  if (event.target.closest('[data-close-claim]')) closeClaimModal();
+  const payment = event.target.closest('[data-pay-invoice]'); if (payment) payInvoice(payment.dataset.payInvoice);
+  const claimDelete = event.target.closest('[data-delete-claim]');
+  if (claimDelete) openClaimConfirm(state.claims.find(claim => claim.id === claimDelete.dataset.deleteClaim));
   const menuTrigger = event.target.closest('[data-menu-trigger]');
   if (menuTrigger) { event.stopPropagation(); openActionMenu(menuTrigger); }
   else if (!event.target.closest('.action-menu')) closeMenus();
@@ -296,15 +397,21 @@ qs('[data-policy-search]').addEventListener('input', renderPolicies);
 qs('[data-policy-status]').addEventListener('change', renderPolicies);
 qs('[data-invoice-search]').addEventListener('input', renderInvoices);
 qs('[data-invoice-status]').addEventListener('change', renderInvoices);
+qs('[data-claim-search]').addEventListener('input', renderClaims);
+qs('[data-claim-status]').addEventListener('change', renderClaims);
+qs('[data-claim-table]').addEventListener('change', event => { if (event.target.matches('[data-claim-status-change]')) updateClaimStatus(event.target.dataset.claimStatusChange, event.target.value); });
+qs('[data-claim-form]').addEventListener('submit', saveClaim);
 qs('[data-download-csv]').addEventListener('click', exportCsv);
 qs('[data-confirm-cancel]').addEventListener('click', closeConfirm);
-qs('[data-confirm-delete]').addEventListener('click', deletePolicy);
+qs('[data-confirm-delete]').addEventListener('click', deleteRecord);
 qsa('.modal-backdrop').forEach(backdrop => backdrop.addEventListener('click', event => {
   if (event.target !== backdrop) return;
-  if (backdrop.matches('[data-policy-modal]')) closePolicyModal(); else closeConfirm();
+  if (backdrop.matches('[data-policy-modal]')) closePolicyModal();
+  else if (backdrop.matches('[data-claim-modal]')) closeClaimModal();
+  else closeConfirm();
 }));
-document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeMenus(); if (!qs('[data-confirm-modal]').hidden) closeConfirm(); else if (!qs('[data-policy-modal]').hidden) closePolicyModal(); } });
+document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeMenus(); if (!qs('[data-confirm-modal]').hidden) closeConfirm(); else if (!qs('[data-claim-modal]').hidden) closeClaimModal(); else if (!qs('[data-policy-modal]').hidden) closePolicyModal(); } });
 
 const initialView = location.hash.slice(1);
-if (['resumen', 'polizas', 'facturas', 'laboratorio'].includes(initialView)) switchView(initialView);
+if (['resumen', 'polizas', 'facturas', 'siniestros', 'laboratorio'].includes(initialView)) switchView(initialView);
 loadData().catch(error => showAlert(`No se pudo iniciar la aplicación: ${error.message}`, true));
