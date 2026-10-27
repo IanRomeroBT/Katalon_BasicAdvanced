@@ -102,7 +102,7 @@ async function handleApi(req, res, url) {
       id: nextInvoiceId(db.invoices),
       policyId: policy.id,
       holder: policy.holder,
-      amount: policy.premium,
+      amount: Number((policy.premium * 1.16).toFixed(2)),
       issuedAt: policy.startDate,
       dueAt: policy.startDate,
       status: 'Pendiente'
@@ -121,7 +121,6 @@ async function handleApi(req, res, url) {
 
     if (req.method === 'DELETE') {
       db.policies.splice(index, 1);
-      db.invoices = db.invoices.filter(item => item.policyId !== id);
       writeDb(db);
       return json(res, 200, { deleted: id });
     }
@@ -129,9 +128,6 @@ async function handleApi(req, res, url) {
     const input = await readBody(req);
     if (req.method === 'PATCH') {
       db.policies[index].status = input.status;
-      db.invoices
-        .filter(item => item.policyId === id)
-        .forEach(item => { item.status = input.status === 'Baja' ? 'Cancelada' : 'Pendiente'; });
       writeDb(db);
       return json(res, 200, db.policies[index]);
     }
@@ -149,12 +145,6 @@ async function handleApi(req, res, url) {
       endDate: input.endDate,
       status: input.status || db.policies[index].status
     };
-    db.invoices
-      .filter(item => item.policyId === id)
-      .forEach(item => {
-        item.holder = db.policies[index].holder;
-        item.amount = db.policies[index].premium;
-      });
     writeDb(db);
     return json(res, 200, db.policies[index]);
   }

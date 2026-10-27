@@ -90,10 +90,10 @@ function renderChart() {
 }
 
 function policyRows() {
-  const text = qs('[data-policy-search]').value.trim().toLowerCase();
+  const text = qs('[data-policy-search]').value.trim();
   const status = qs('[data-policy-status]').value;
   return state.policies.filter(policy => {
-    const haystack = `${policy.id} ${policy.holder} ${policy.email} ${policy.type}`.toLowerCase();
+    const haystack = `${policy.id} ${policy.holder} ${policy.email} ${policy.type}`;
     return (!text || haystack.includes(text)) && (!status || policy.status === status);
   });
 }
@@ -118,10 +118,10 @@ function renderPolicies() {
 }
 
 function invoiceRows() {
-  const text = qs('[data-invoice-search]').value.trim().toLowerCase();
+  const text = qs('[data-invoice-search]').value.trim();
   const status = qs('[data-invoice-status]').value;
   return state.invoices.filter(invoice => {
-    const haystack = `${invoice.id} ${invoice.policyId} ${invoice.holder}`.toLowerCase();
+    const haystack = `${invoice.id} ${invoice.policyId} ${invoice.holder}`;
     return (!text || haystack.includes(text)) && (!status || invoice.status === status);
   });
 }

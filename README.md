@@ -49,3 +49,7 @@ Para selectores mantenibles, usa texto visible, relaciones entre elementos y atr
 
 Consulta [las historias de usuario](docs/HISTORIAS_USUARIO.md) para criterios de aceptación y la matriz sugerida de ejercicios.
 
+## Rama de despliegue defectuoso
+
+La rama `codex/deploy-defectuoso` simula el candidato `1.1.0-RC.3` con regresiones funcionales intencionales. La relación completa de fallas está en `docs/GUIA_INSTRUCTOR_DEFECTOS.md` y debe tratarse como material con respuestas para el instructor.
+
